@@ -1,3 +1,6 @@
+// --------------------------------------------------------------
+// Created by A. Kevin Bailey on 8/10/2024 under a GPL3.0 license
+// --------------------------------------------------------------
 package main
 
 import (
@@ -53,12 +56,14 @@ func fetchData(wg *sync.WaitGroup, mu *sync.Mutex, httpClient *http.Client, resp
 		resp, err := httpClient.Do(request)
 		endTime := time.Now()
 
-		responseTime := endTime.Sub(startTime).Seconds() * 1000 // Use Seconds to get float value and convert to milliseconds
+		// Use microseconds to get float value and convert to milliseconds
+		responseTime := (float64)(endTime.Sub(startTime).Microseconds()) / 1000
 
 		if resp != nil {
 			status = resp.Status
 			if !keepConnectsOpen {
-				// Must read the body.  Dumping it to null out.
+				// Must read the body to close the session.  Dumping it to null out.
+				// Not reading the body will keep the connection occupied until the connection timeout.
 				_, err = io.Copy(io.Discard, resp.Body)
 				err = resp.Body.Close()
 			}
@@ -192,6 +197,7 @@ func main() {
 	// Create and start goroutines
 	for i := 0; i < numThreads; i++ {
 		numCalls := callsPerGoroutine
+		// Add one call to each thread number that is less than the mod of the total calls to compensate for the remainder
 		if i < remainderCalls {
 			numCalls++
 		}
@@ -216,6 +222,7 @@ func main() {
 	}
 	averageResponseTime := totalResponseTime / float64(len(responseTimes))
 
+	fmt.Printf("Total thread count: %d\n", numThreads)
 	fmt.Printf("Total test time: %.2f s\n", totalTime)
 	fmt.Printf("Average response time: %.2f ms\n", averageResponseTime)
 	fmt.Printf("Average requests per second: %.2f\n", requestsPerSecond)
