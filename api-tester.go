@@ -29,7 +29,7 @@ func printHelp() {
 	fmt.Println("  -reuseConnects          - Add the request 'Connection: keep-alive' header.")
 	fmt.Println("  -keepConnectsOpen       - Force a new connection with every request (not advised).")
 	fmt.Println("Help:")
-	fmt.Println("  -? or --help - Display this help message.")
+	fmt.Println("  -? or --help            - Display this help message.")
 }
 
 // Function to make the GET request and measure response time
